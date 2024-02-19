@@ -14,9 +14,6 @@ task("native-staking:deposit", "Deposits funds directly into the Eth2 contract")
     const rawData = fs.readFileSync(depositDataPath, "utf8");
     const depositData = JSON.parse(rawData);
 
-    // Get the signer
-    const [signer] = await ethers.getSigners();
-
     const ethereumDepositContract = await ethers.getContractAt(
       "DepositContract",
       ethereumDepositContractAddress,
@@ -24,20 +21,24 @@ task("native-staking:deposit", "Deposits funds directly into the Eth2 contract")
 
     const value = ethers.parseEther("32", "wei");
 
-    // Loop through each deposit record and send the deposit
-    for (const record of depositData) {
-      const tx = await ethereumDepositContract.deposit(
-        record.pubkey,
-        record.withdrawal_credentials,
-        record.signature,
-        record.deposit_data_root,
-        { value },
-      );
+    const depositPromises = depositData.map((record) =>
+      ethereumDepositContract
+        .deposit(
+          record.pubkey,
+          record.withdrawal_credentials,
+          record.signature,
+          record.deposit_data_root,
+          { value },
+        )
+        .then((tx) => {
+          console.log(
+            `Sent deposit for account ${record.account} with public key ${record.pubkey}, tx hash: ${tx.hash}`,
+          );
+          return tx.wait().then(() => {
+            console.log(`Transaction confirmed for account ${record.account}`);
+          });
+        }),
+    );
 
-      console.log(
-        `Sent deposit for account ${record.account} with public key ${record.pubkey}, tx hash: ${tx.hash}`,
-      );
-      await tx.wait();
-      console.log(`Transaction confirmed for account ${record.account}`);
-    }
+    await Promise.all(depositPromises);
   });

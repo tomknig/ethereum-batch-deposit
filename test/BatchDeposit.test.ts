@@ -89,8 +89,7 @@ function createValidatorDeposits(
 
 describe("BatchDeposit", async () => {
   beforeEach(async function () {
-    const [_deployer, justfarmingFeeWallet, customer] =
-      await ethers.getSigners();
+    const [_deployer] = await ethers.getSigners();
 
     this.ethereumStakingDepositContract = await ethers.deployContract(
       "DepositContract",
@@ -127,17 +126,13 @@ describe("BatchDeposit", async () => {
 
   describe("batch deposits", async () => {
     it("can perform multiple deposits in one tx", async function () {
-      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const [_owner, payee1, rewardsWallet] = await ethers.getSigners();
       const rewardsAddress = await rewardsWallet.getAddress();
       const numberOfNodes = 3;
       const validatorDeposits = createValidatorDeposits(
         rewardsAddress,
         numberOfNodes,
       );
-
-      await this.batchDepositContract
-        .connect(owner)
-        .registerValidators(validatorDeposits.pubkeys);
 
       const res = await this.batchDepositContract
         .connect(payee1)
@@ -170,17 +165,10 @@ describe("BatchDeposit", async () => {
     });
 
     it("reverts if transaction value is too low", async function () {
-      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const [_owner, payee1, rewardsWallet] = await ethers.getSigners();
       const rewardsAddress = await rewardsWallet.getAddress();
       const amountWei = ethers.parseEther("1", "wei");
-      const validatorDeposits = createValidatorDeposits(
-        rewardsAddress,
-        1,
-      );
-
-      await this.batchDepositContract
-        .connect(owner)
-        .registerValidators(validatorDeposits.pubkeys);
+      const validatorDeposits = createValidatorDeposits(rewardsAddress, 1);
 
       await expect(
         this.batchDepositContract
@@ -201,17 +189,10 @@ describe("BatchDeposit", async () => {
     });
 
     it("reverts if transaction value is too high", async function () {
-      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const [_owner, payee1, rewardsWallet] = await ethers.getSigners();
       const rewardsAddress = await rewardsWallet.getAddress();
       const amountWei = ethers.parseEther("100", "wei");
-      const validatorDeposits = createValidatorDeposits(
-        rewardsAddress,
-        1,
-      );
-
-      await this.batchDepositContract
-        .connect(owner)
-        .registerValidators(validatorDeposits.pubkeys);
+      const validatorDeposits = createValidatorDeposits(rewardsAddress, 1);
 
       await expect(
         this.batchDepositContract
@@ -232,17 +213,13 @@ describe("BatchDeposit", async () => {
     });
 
     it("reverts if the number of pubkeys does not match the number of signatures", async function () {
-      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const [_owner, payee1, rewardsWallet] = await ethers.getSigners();
       const rewardsAddress = await rewardsWallet.getAddress();
       const numberOfNodes = 3;
       const validatorDeposits = createValidatorDeposits(
         rewardsAddress,
         numberOfNodes,
       );
-
-      await this.batchDepositContract
-        .connect(owner)
-        .registerValidators(validatorDeposits.pubkeys);
 
       await expect(
         this.batchDepositContract
@@ -263,17 +240,13 @@ describe("BatchDeposit", async () => {
     });
 
     it("reverts if the number of pubkeys does not match the number of deposit data roots", async function () {
-      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const [_owner, payee1, rewardsWallet] = await ethers.getSigners();
       const rewardsAddress = await rewardsWallet.getAddress();
       const numberOfNodes = 3;
       const validatorDeposits = createValidatorDeposits(
         rewardsAddress,
         numberOfNodes,
       );
-
-      await this.batchDepositContract
-        .connect(owner)
-        .registerValidators(validatorDeposits.pubkeys);
 
       await expect(
         this.batchDepositContract
@@ -294,17 +267,13 @@ describe("BatchDeposit", async () => {
     });
 
     it("reverts if a public key is invalid", async function () {
-      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const [_owner, payee1, rewardsWallet] = await ethers.getSigners();
       const rewardsAddress = await rewardsWallet.getAddress();
       const numberOfNodes = 2;
       const validatorDeposits = createValidatorDeposits(
         rewardsAddress,
         numberOfNodes,
       );
-
-      await this.batchDepositContract
-        .connect(owner)
-        .registerValidators(validatorDeposits.pubkeys);
 
       await expect(
         this.batchDepositContract
@@ -325,17 +294,13 @@ describe("BatchDeposit", async () => {
     });
 
     it("reverts if a signature is invalid", async function () {
-      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const [_owner, payee1, rewardsWallet] = await ethers.getSigners();
       const rewardsAddress = await rewardsWallet.getAddress();
       const numberOfNodes = 2;
       const validatorDeposits = createValidatorDeposits(
         rewardsAddress,
         numberOfNodes,
       );
-
-      await this.batchDepositContract
-        .connect(owner)
-        .registerValidators(validatorDeposits.pubkeys);
 
       await expect(
         this.batchDepositContract
@@ -355,81 +320,14 @@ describe("BatchDeposit", async () => {
       );
     });
 
-    it("reverts if a validator is not available", async function () {
-      const [_owner, payee1, rewardsWallet] = await ethers.getSigners();
-      const rewardsAddress = await rewardsWallet.getAddress();
-      const numberOfNodes = 1;
-      const validatorDeposits = createValidatorDeposits(
-        rewardsAddress,
-        numberOfNodes,
-      );
-
-      await expect(
-        this.batchDepositContract
-          .connect(payee1)
-          .batchDeposit(
-            validatorDeposits.withdrawalAddress,
-            validatorDeposits.pubkeys,
-            validatorDeposits.signatures,
-            validatorDeposits.depositDataRoots,
-            {
-              value: validatorDeposits.amount,
-            },
-          ),
-      ).to.be.revertedWithCustomError(
-        this.batchDepositContract,
-        "ValidatorNotAvailable",
-      );
-    });
-
     it("updates the available validators after a successful deposit", async function () {
-      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const [_owner, payee1, rewardsWallet] = await ethers.getSigners();
       const rewardsAddress = await rewardsWallet.getAddress();
       const numberOfNodes = 3;
       const validatorDeposits = createValidatorDeposits(
         rewardsAddress,
         numberOfNodes,
       );
-
-      await this.batchDepositContract
-        .connect(owner)
-        .registerValidators(validatorDeposits.pubkeys.slice(0, 1));
-
-      expect(
-        await this.batchDepositContract.isValidatorAvailable(
-          validatorDeposits.pubkeys[0],
-        ),
-      ).to.be.true;
-      expect(
-        await this.batchDepositContract.isValidatorAvailable(
-          validatorDeposits.pubkeys[1],
-        ),
-      ).to.be.false;
-      expect(
-        await this.batchDepositContract.isValidatorAvailable(
-          validatorDeposits.pubkeys[2],
-        ),
-      ).to.be.false;
-
-      await this.batchDepositContract
-        .connect(owner)
-        .registerValidators(validatorDeposits.pubkeys.slice(1, 3));
-
-      expect(
-        await this.batchDepositContract.isValidatorAvailable(
-          validatorDeposits.pubkeys[0],
-        ),
-      ).to.be.true;
-      expect(
-        await this.batchDepositContract.isValidatorAvailable(
-          validatorDeposits.pubkeys[1],
-        ),
-      ).to.be.true;
-      expect(
-        await this.batchDepositContract.isValidatorAvailable(
-          validatorDeposits.pubkeys[2],
-        ),
-      ).to.be.true;
 
       await this.batchDepositContract
         .connect(payee1)
@@ -443,22 +341,6 @@ describe("BatchDeposit", async () => {
           },
         );
 
-      expect(
-        await this.batchDepositContract.isValidatorAvailable(
-          validatorDeposits.pubkeys[0],
-        ),
-      ).to.be.false;
-      expect(
-        await this.batchDepositContract.isValidatorAvailable(
-          validatorDeposits.pubkeys[1],
-        ),
-      ).to.be.true;
-      expect(
-        await this.batchDepositContract.isValidatorAvailable(
-          validatorDeposits.pubkeys[2],
-        ),
-      ).to.be.true;
-
       await this.batchDepositContract
         .connect(payee1)
         .batchDeposit(
@@ -470,22 +352,6 @@ describe("BatchDeposit", async () => {
             value: ethers.parseEther((32 * 2).toString()),
           },
         );
-
-      expect(
-        await this.batchDepositContract.isValidatorAvailable(
-          validatorDeposits.pubkeys[0],
-        ),
-      ).to.be.false;
-      expect(
-        await this.batchDepositContract.isValidatorAvailable(
-          validatorDeposits.pubkeys[1],
-        ),
-      ).to.be.false;
-      expect(
-        await this.batchDepositContract.isValidatorAvailable(
-          validatorDeposits.pubkeys[2],
-        ),
-      ).to.be.false;
     });
   });
 

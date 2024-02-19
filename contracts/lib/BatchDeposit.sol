@@ -26,10 +26,10 @@ contract BatchDeposit is Ownable, ReentrancyGuard {
     error InvalidDepositContractAddress();
     error InvalidNumberOfValidators();
     error InvalidTransactionAmount();
+    error PublicKeyLengthMismatch();
     error SignaturesLengthMismatch();
     error DepositDataRootsLengthMismatch();
     error SignatureLengthMismatch();
-    error ValidatorNotAvailable();
 
     constructor(address depositContractAddr) {
         if (depositContractAddr == address(0))
@@ -100,10 +100,6 @@ contract BatchDeposit is Ownable, ReentrancyGuard {
                     revert PublicKeyLengthMismatch();
                 if (signatures[i].length != SIGNATURE_LENGTH)
                     revert SignatureLengthMismatch();
-                if (_validatorStates[pubkeys[i]] != ValidatorState.Registered)
-                    revert ValidatorNotAvailable();
-
-                _validatorStates[pubkeys[i]] = ValidatorState.Activated;
 
                 IDepositContract(depositContract).deposit{
                     value: DEPOSIT_AMOUNT
