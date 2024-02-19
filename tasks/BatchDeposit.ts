@@ -80,8 +80,8 @@ task(
     "The address of a BatchDeposit contract",
   )
   .addParam(
-    "stakingRewardsContractAddress",
-    "The address of a StakingRewards contract",
+    "withdrawalAddress",
+    "The Ethereum address used for the withdrawal credential",
   )
   .addParam(
     "validatorPublicKeys",
@@ -98,7 +98,7 @@ task(
   .setAction(
     async ({
       batchDepositContractAddress,
-      stakingRewardsContractAddress,
+      withdrawalAddress,
       validatorPublicKeys,
       validatorSignatures,
       validatorDepositDataRoots,
@@ -117,7 +117,7 @@ task(
       );
 
       await batchDepositContract.batchDeposit(
-        stakingRewardsContractAddress,
+        withdrawalAddress,
         publicKeys,
         validatorSignatures.split(","),
         validatorDepositDataRoots.split(","),

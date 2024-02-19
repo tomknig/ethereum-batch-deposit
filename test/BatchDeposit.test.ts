@@ -109,16 +109,6 @@ describe("BatchDeposit", async () => {
     );
 
     await this.batchDepositContract.waitForDeployment();
-
-    this.stakingRewardsContract = await ethers.deployContract(
-      "StakingRewards",
-      [
-        this.batchDepositContract.target,
-        justfarmingFeeWallet.address,
-        customer.address,
-        1000,
-      ],
-    );
   });
 
   describe("not payable", async () => {
@@ -135,99 +125,13 @@ describe("BatchDeposit", async () => {
     });
   });
 
-  describe("validator registration", async () => {
-    it("is allowed with valid validator public keys", async function () {
-      const [owner, nobody] = await ethers.getSigners();
-
-      const validator1Pubkey = `0x${"01".repeat(48)}`;
-
-      await this.batchDepositContract
-        .connect(owner)
-        .registerValidators([validator1Pubkey]);
-
-      expect(
-        await this.batchDepositContract
-          .connect(nobody)
-          .isValidatorAvailable(validator1Pubkey),
-      ).to.be.true;
-    });
-
-    it("reverts if a validator is already registered", async function () {
-      const [owner] = await ethers.getSigners();
-
-      const validator1Pubkey = `0x${"01".repeat(48)}`;
-
-      await this.batchDepositContract
-        .connect(owner)
-        .registerValidators([validator1Pubkey]);
-
-      await expect(
-        this.batchDepositContract
-          .connect(owner)
-          .registerValidators([validator1Pubkey]),
-      ).to.be.revertedWithCustomError(
-        this.batchDepositContract,
-        "ValidatorAlreadyRegistered",
-      );
-    });
-
-    it("reverts if a validator has already been registered *and* activated", async function () {
-      const [owner, payee1] = await ethers.getSigners();
-      const numberOfNodes = 1;
-
-      const validatorDeposits = createValidatorDeposits(
-        this.stakingRewardsContract.target,
-        numberOfNodes,
-      );
-
-      await this.batchDepositContract
-        .connect(owner)
-        .registerValidators(validatorDeposits.pubkeys);
-
-      await this.batchDepositContract
-        .connect(payee1)
-        .batchDeposit(
-          validatorDeposits.withdrawalAddress,
-          validatorDeposits.pubkeys,
-          validatorDeposits.signatures,
-          validatorDeposits.depositDataRoots,
-          {
-            value: validatorDeposits.amount,
-          },
-        );
-
-      await expect(
-        this.batchDepositContract
-          .connect(owner)
-          .registerValidators(validatorDeposits.pubkeys),
-      ).to.be.revertedWithCustomError(
-        this.batchDepositContract,
-        "ValidatorIsOrWasActive",
-      );
-    });
-
-    it("reverts if a validator public key is invalid", async function () {
-      const [owner] = await ethers.getSigners();
-
-      const validator1Pubkey = `0x${"01".repeat(47)}`;
-
-      await expect(
-        this.batchDepositContract
-          .connect(owner)
-          .registerValidators([validator1Pubkey]),
-      ).to.be.revertedWithCustomError(
-        this.batchDepositContract,
-        "PublicKeyLengthMismatch",
-      );
-    });
-  });
-
   describe("batch deposits", async () => {
     it("can perform multiple deposits in one tx", async function () {
-      const [owner, payee1] = await ethers.getSigners();
+      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const rewardsAddress = await rewardsWallet.getAddress();
       const numberOfNodes = 3;
       const validatorDeposits = createValidatorDeposits(
-        this.stakingRewardsContract.target,
+        rewardsAddress,
         numberOfNodes,
       );
 
@@ -266,10 +170,11 @@ describe("BatchDeposit", async () => {
     });
 
     it("reverts if transaction value is too low", async function () {
-      const [owner, payee1] = await ethers.getSigners();
+      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const rewardsAddress = await rewardsWallet.getAddress();
       const amountWei = ethers.parseEther("1", "wei");
       const validatorDeposits = createValidatorDeposits(
-        this.stakingRewardsContract.target,
+        rewardsAddress,
         1,
       );
 
@@ -296,10 +201,11 @@ describe("BatchDeposit", async () => {
     });
 
     it("reverts if transaction value is too high", async function () {
-      const [owner, payee1] = await ethers.getSigners();
+      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const rewardsAddress = await rewardsWallet.getAddress();
       const amountWei = ethers.parseEther("100", "wei");
       const validatorDeposits = createValidatorDeposits(
-        this.stakingRewardsContract.target,
+        rewardsAddress,
         1,
       );
 
@@ -326,10 +232,11 @@ describe("BatchDeposit", async () => {
     });
 
     it("reverts if the number of pubkeys does not match the number of signatures", async function () {
-      const [owner, payee1] = await ethers.getSigners();
+      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const rewardsAddress = await rewardsWallet.getAddress();
       const numberOfNodes = 3;
       const validatorDeposits = createValidatorDeposits(
-        this.stakingRewardsContract.target,
+        rewardsAddress,
         numberOfNodes,
       );
 
@@ -356,10 +263,11 @@ describe("BatchDeposit", async () => {
     });
 
     it("reverts if the number of pubkeys does not match the number of deposit data roots", async function () {
-      const [owner, payee1] = await ethers.getSigners();
+      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const rewardsAddress = await rewardsWallet.getAddress();
       const numberOfNodes = 3;
       const validatorDeposits = createValidatorDeposits(
-        this.stakingRewardsContract.target,
+        rewardsAddress,
         numberOfNodes,
       );
 
@@ -386,10 +294,11 @@ describe("BatchDeposit", async () => {
     });
 
     it("reverts if a public key is invalid", async function () {
-      const [owner, payee1] = await ethers.getSigners();
+      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const rewardsAddress = await rewardsWallet.getAddress();
       const numberOfNodes = 2;
       const validatorDeposits = createValidatorDeposits(
-        this.stakingRewardsContract.target,
+        rewardsAddress,
         numberOfNodes,
       );
 
@@ -416,10 +325,11 @@ describe("BatchDeposit", async () => {
     });
 
     it("reverts if a signature is invalid", async function () {
-      const [owner, payee1] = await ethers.getSigners();
+      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const rewardsAddress = await rewardsWallet.getAddress();
       const numberOfNodes = 2;
       const validatorDeposits = createValidatorDeposits(
-        this.stakingRewardsContract.target,
+        rewardsAddress,
         numberOfNodes,
       );
 
@@ -446,10 +356,11 @@ describe("BatchDeposit", async () => {
     });
 
     it("reverts if a validator is not available", async function () {
-      const [_owner, payee1] = await ethers.getSigners();
+      const [_owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const rewardsAddress = await rewardsWallet.getAddress();
       const numberOfNodes = 1;
       const validatorDeposits = createValidatorDeposits(
-        this.stakingRewardsContract.target,
+        rewardsAddress,
         numberOfNodes,
       );
 
@@ -472,10 +383,11 @@ describe("BatchDeposit", async () => {
     });
 
     it("updates the available validators after a successful deposit", async function () {
-      const [owner, payee1] = await ethers.getSigners();
+      const [owner, payee1, rewardsWallet] = await ethers.getSigners();
+      const rewardsAddress = await rewardsWallet.getAddress();
       const numberOfNodes = 3;
       const validatorDeposits = createValidatorDeposits(
-        this.stakingRewardsContract.target,
+        rewardsAddress,
         numberOfNodes,
       );
 

@@ -5,7 +5,6 @@ import "@nomicfoundation/hardhat-toolbox";
 import "solidity-coverage";
 
 import "./tasks/BatchDeposit";
-import "./tasks/StakingRewards";
 import "./tasks/enclave";
 import "./tasks/native-staking";
 

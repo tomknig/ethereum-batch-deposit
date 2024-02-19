@@ -4,15 +4,13 @@ pragma solidity 0.8.21;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-import "./StakingRewards.sol";
 import "../interfaces/IDepositContract.sol";
 
 /**
  * @title BatchDeposit
  *
  * @dev This contract allows to batch deposit validators to the Ethereum 2.0
- * deposit contract. The validators available for deposit are registered by the
- * contract owner.
+ * deposit contract.
  */
 contract BatchDeposit is Ownable, ReentrancyGuard {
     address private immutable depositContract;
@@ -22,21 +20,10 @@ contract BatchDeposit is Ownable, ReentrancyGuard {
     uint256 private constant MAX_VALIDATORS_PER_BATCH = 100;
     uint256 private constant DEPOSIT_AMOUNT = 32 ether;
 
-    enum ValidatorState {
-        None,
-        Registered,
-        Activated
-    }
-    mapping(bytes => ValidatorState) private _validatorStates;
-
     event Deposited(address from, uint256 nodesAmount);
 
     error NotPayable();
     error InvalidDepositContractAddress();
-    error NoValidatorsToRegister();
-    error PublicKeyLengthMismatch();
-    error ValidatorAlreadyRegistered();
-    error ValidatorIsOrWasActive();
     error InvalidNumberOfValidators();
     error InvalidTransactionAmount();
     error SignaturesLengthMismatch();
@@ -59,51 +46,9 @@ contract BatchDeposit is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @dev Returns whether a validator is available.
-     *
-     * @param pubkey The BLS12-381 public key of the validator.
-     *
-     * @return bool Whether the validator is available.
-     */
-    function isValidatorAvailable(
-        bytes calldata pubkey
-    ) external view returns (bool) {
-        return _validatorStates[pubkey] == ValidatorState.Registered;
-    }
-
-    /**
-     * @dev Register public keys of validators that are ready to be deposited to.
-     *
-     * @param pubkeys The BLS12-381 public keys of the validators.
-     *
-     * @notice
-     * One the contract owner may register new validators.
-     */
-    function registerValidators(bytes[] calldata pubkeys) external onlyOwner {
-        uint256 numberOfValidators = pubkeys.length;
-
-        if (numberOfValidators == 0) revert NoValidatorsToRegister();
-
-        for (uint256 i = 0; i < numberOfValidators; ) {
-            unchecked {
-                if (pubkeys[i].length != PUBKEY_LENGTH)
-                    revert PublicKeyLengthMismatch();
-                if (_validatorStates[pubkeys[i]] == ValidatorState.Registered)
-                    revert ValidatorAlreadyRegistered();
-                if (_validatorStates[pubkeys[i]] == ValidatorState.Activated)
-                    revert ValidatorIsOrWasActive();
-
-                _validatorStates[pubkeys[i]] = ValidatorState.Registered;
-
-                ++i;
-            }
-        }
-    }
-
-    /**
      * @dev Allows to deposit multiple validators in a single transaction.
      *
-     * @param stakingRewardsContract The address of an instance of the StakingRewards contract.
+     * @param withdrawalAddress The Ethereum address used for the withdrawal credential.
      * @param pubkeys The BLS12-381 public keys of the validators.
      * @param signatures The BLS12-381 signatures of the deposit messages.
      * @param depositDataRoots The deposit data roots of the validators.
@@ -123,7 +68,7 @@ contract BatchDeposit is Ownable, ReentrancyGuard {
      * - The deposit data roots of the validators.
      */
     function batchDeposit(
-        address stakingRewardsContract,
+        address withdrawalAddress,
         bytes[] calldata pubkeys,
         bytes[] calldata signatures,
         bytes32[] calldata depositDataRoots
@@ -135,7 +80,7 @@ contract BatchDeposit is Ownable, ReentrancyGuard {
         bytes memory withdrawalCredential = abi.encodePacked(
             bytes1(0x01),
             bytes11(0),
-            bytes20(stakingRewardsContract)
+            bytes20(withdrawalAddress)
         );
 
         if (
@@ -172,10 +117,6 @@ contract BatchDeposit is Ownable, ReentrancyGuard {
                 ++i;
             }
         }
-
-        IStakingRewardsContract(stakingRewardsContract).activateValidators(
-            pubkeys
-        );
 
         emit Deposited(msg.sender, numberOfValidators);
     }

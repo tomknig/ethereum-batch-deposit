@@ -1,47 +1,30 @@
-# Justfarming Contracts
+# Ethereum Batch Deposit
 
-This repository contains the smart contract code for the Justfarming platform.
-Contracts are organized in the [`contracts`](/contracts) directory. [`interfaces`](/contracts/interfaces) implement external interfaces we depend on, [`lib`](/contracts/lib) contains our actual contracts and [`test`](/contracts/test) the mocked contracts for testing.
+This repository contains the smart contract code for batch deposits into native staking on Ethereum.
+The contracts are organized in the [`contracts`](/contracts) directory. [`interfaces`](/contracts/interfaces) implement external interfaces we depend on, [`lib`](/contracts/lib) contains our actual contracts and [`test`](/contracts/test) the mocked contracts for testing.
 
 ## Contracts
 
-### StakingRewards
-
-The Justfarming StakingRewards contract manages the allocation of staking rewards between a staking customer and the platform. The primary contract `StakingRewards.sol` implements a pull-based approach for withdrawing validator rewards and fees respectively. For more information, see `contracts/lib/StakingRewards.sol`.
-
 ### BatchDeposit
 
-The Justfarming BatchDeposit contract enables deployment of multiple Ethereum validators at once. The `BatchDeposit.sol` contract interacts with the Ethereum staking deposit contract. For more information, see `contracts/lib/BatchDeposit.sol`.
+The BatchDeposit contract enables deployment of multiple Ethereum validators at once. The `BatchDeposit.sol` contract interacts with the native Ethereum staking deposit contract. For more information, see `contracts/lib/BatchDeposit.sol`.
 
-Credits also go to [stakefish](https://www.stake.fish) and [abyss](https://www.abyss.finance) who have built their batch depositors in the open:
+Credits also go to [Justfarming](https://www.justfarming.xyz), [stakefish](https://www.stake.fish), and [abyss](https://www.abyss.finance) who have built their batch depositors in the open:
 
+- [Justfarming BatchDeposit & StakingRewards](https://github.com/justfarming/contracts)
 - [stakefish BatchDeposits contract (GitHub)](https://github.com/stakefish/eth2-batch-deposit/blob/main/contracts/BatchDeposits.sol)
 - [Abyss Eth2 Depositor contract (GitHub)](https://github.com/abyssfinance/abyss-eth2depositor/blob/main/contracts/AbyssEth2Depositor.sol)
 
 ## Design Decisions
 
-### The Ethereum Validator Exit Process
+### The Ethereum Deposit Process
 
-The `StakingRewards` contract, specifically the `releasable()` function, incorporates a vital design decision for calculating releasable ETH amounts. This decision is related to the Ethereum validator exit process and its absent interaction with smart contracts.
+Ethereum staking deposits, i.e., `depositdata`, generated with the official [`Ethereum staking-deposit-cli`](https://github.com/ethereum/staking-deposit-cli) are flexible regarding the per-validator withdrawal credential. This implementation of batch deposits assume, and require, all validators of a batch to deposit for the same withdrawal address. This design-decision is in line with two observation-based assumptions:
 
-#### Ethereum Validator Exit Process
+1. Batches of validators are usually deployed on behalf of a single entity that usually wants all validators of one batch to be associated to the same withdrawal address.
+2. People want confidence when depositing to validators: Verifying Ethereum staking deposits on hardware wallets is difficult. The stakes are high but confidence when reviewing a transaction of 100 Validator deposits with 100 different withdrawal credentials hidden in _a lot_ of hex data on a small screen.
 
-1. **Exit Message Broadcasting**: A signed exit message is broadcasted to the network when a validator exits. This message indicates the validator's intention to cease operations and initiate the process of exiting.
-2. **Non-Triggering of Smart Contracts**: Crucially, broadcasting a signed exit message in Ethereum does not trigger any smart contract execution. This is because the exit process occurs at the consensus layer of Ethereum, which operates independently of the execution layer where smart contracts reside.
-3. **Implications for Smart Contracts**: When a validator exits, this action can not automatically update relevant states or variables in smart contracts that might depend on the validator's status. This includes the `_exitedStake` variable in the `StakingRewards` contract, which is necessary for accurate reward calculations.
-
-#### Necessity of `exitValidators()` Function
-
-Given the described separation between the consensus and execution layers in Ethereum, the `StakingRewards` contract requires the `exitValidators()` function to be explicitly called by the reward recipient. This function updates the `_exitedStake` variable, aligning it with the actual state of exited validators.
-
-#### Economic Incentive and Responsibility
-
-1. **Active Engagement**: Reward recipients are incentivized to engage actively by calling `exitValidators()`, ensuring no fees apply to the stake returned after the successful exit of validators.
-2. **Autonomy and Accountability**: This design empowers reward recipients with freedom over their rewards while holding them accountable for maintaining the accuracy of their staking rewards.
-
-#### Design Justification and Conclusion
-
-This design decision is a pragmatic response to the inherent limitations and architectural design of the Ethereum network. It effectively addresses the disconnect between validator exit processes and smart contract execution, ensuring that the `StakingRewards` contract functions accurately and efficiently within these constraints. Simultaneously, it underscores the importance of stakeholder engagement and responsibility to ensure a consistent state and the correct allocation of rewards and fees.
+To the latter point: This implementation helps by presenting the withdrawal address (not credential) as the first parameter of the contract, re-enabling a human to conduct the verification of the batch deposit transaction.
 
 ## Setup
 
@@ -200,7 +183,7 @@ To deposit to one or multiple of these validators, you'll need to first create d
 export ETHDO_CONFIG_WALLET=Justfarming Development
 export ETHDO_CONFIG_PASSPHRASE=test
 export ETHDO_CONFIG_MNEMONIC="flee title shaft evoke stable vote injury ten strong farm obtain pause record rural device cotton hollow echo good acquire scrub buzz vacant liar"
-export ETHDO_CONFIG_WITHDRAWAL_ADDRESS=$JF_STAKING_REWARDS_CONTRACT_ADDRESS
+export ETHDO_CONFIG_WITHDRAWAL_ADDRESS=$WITHDRAWAL_ADDRESS
 
 ethdo wallet create --wallet="${ETHDO_CONFIG_WALLET}" --type="hd" --wallet-passphrase="${ETHDO_CONFIG_PASSPHRASE}" --mnemonic="${ETHDO_CONFIG_MNEMONIC}" --allow-weak-passphrases
 
@@ -237,11 +220,7 @@ npx hardhat batch-deposit:is-validator-available --network localnet --batch-depo
 npx hardhat batch-deposit:is-validator-available --network localnet --batch-deposit-contract-address $JF_BATCH_DEPOSIT_CONTRACT_ADDRESS --validator-public-key 0x96b26551fa223f8509b13e651d4bde3749d93df13ca2c45f89d2d96a19cfaaf6bb6600cba7ec4f280de246479af4472d
 
 # deposit to multiple validators
-npx hardhat batch-deposit:batch-deposit --network localnet --batch-deposit-contract-address $JF_BATCH_DEPOSIT_CONTRACT_ADDRESS --staking-rewards-contract-address $JF_STAKING_REWARDS_CONTRACT_ADDRESS --validator-public-keys "0x8e1b5d5d2938c6ae35445875f5a6410d8a8f6b93b486ee795632ef1cc9329849e91098a4d86108199ea9f017a4f57ce3,0x8c35be170b4741be1314e22d46e0a8ddca9d08c182bcd9f37e85a1fd1ea0d37dbcf972e13a86f2ba369066d098140694,0xb8c4b28d46a73aa82c400b7f159645b097953d37e2ca98908bc236b5b6292a6ba3a0612e8454867a3f9f38a1c8184d0f" --validator-signatures "..." --validator-deposit-data-roots "..."
-
-# deploy the StakingRewards contract
-npx hardhat staking-rewards:deploy --network localnet --batch-deposit-contract-address $JF_BATCH_DEPOSIT_CONTRACT_ADDRESS --fee-address 0x4E9A3d9D1cd2A2b2371b8b3F489aE72259886f1A --fee-basis-points 1000 --rewards-address 0xdF8466f277964Bb7a0FFD819403302C34DCD530A
-# export the address afterwards: export JF_STAKING_REWARDS_CONTRACT_ADDRESS=0xBFF5cD0aA560e1d1C6B1E2C347860aDAe1bd8235
+npx hardhat batch-deposit:batch-deposit --network localnet --batch-deposit-contract-address $JF_BATCH_DEPOSIT_CONTRACT_ADDRESS --withdrawal-address $WITHDRAWAL_ADDRESS --validator-public-keys "0x8e1b5d5d2938c6ae35445875f5a6410d8a8f6b93b486ee795632ef1cc9329849e91098a4d86108199ea9f017a4f57ce3,0x8c35be170b4741be1314e22d46e0a8ddca9d08c182bcd9f37e85a1fd1ea0d37dbcf972e13a86f2ba369066d098140694,0xb8c4b28d46a73aa82c400b7f159645b097953d37e2ca98908bc236b5b6292a6ba3a0612e8454867a3f9f38a1c8184d0f" --validator-signatures "..." --validator-deposit-data-roots "..."
 
 # excute a native ethereum staking deposit
 npx hardhat native-staking:deposit --network localnet --ethereum-deposit-contract-address 0x4242424242424242424242424242424242424242 --deposit-data-path /tmp/justfarming-local-validator-depositdata-16.json
