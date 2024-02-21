@@ -1,22 +1,18 @@
-eth_network_module = import_module(
-    "github.com/kurtosis-tech/eth-network-package/main.star@2.0.0"
+ethereum_package = import_module(
+    "github.com/kurtosis-tech/ethereum-package/main.star@1.4.0"
 )
-prelaunch_data_generator_launcher = import_module(
-    "github.com/kurtosis-tech/eth-network-package/src/prelaunch_data_generator/prelaunch_data_generator_launcher/prelaunch_data_generator_launcher.star@2.0.0"
+validator_keystore_generator = import_module(
+    "github.com/kurtosis-tech/ethereum-package/src/prelaunch_data_generator/validator_keystores/validator_keystore_generator.star@1.4.0"
 )
 shared_utils = import_module(
-    "github.com/kurtosis-tech/eth-network-package/shared_utils/shared_utils.star@2.0.0"
+    "github.com/kurtosis-tech/ethereum-package/src/shared_utils/shared_utils.star@1.4.0"
 )
 keystore_files_module = import_module(
-    "github.com/kurtosis-tech/eth-network-package/src/prelaunch_data_generator/cl_validator_keystores/keystore_files.star@2.0.0"
-)
-keystores_result = import_module(
-    "github.com/kurtosis-tech/eth-network-package/src/prelaunch_data_generator/cl_validator_keystores/generate_keystores_result.star@2.0.0"
+    "github.com/kurtosis-tech/ethereum-package/src/prelaunch_data_generator/validator_keystores/keystore_files.star@1.4.0"
 )
 
-
-KEYSTORES_OUTPUT_DIRPATH = "/justfarming-keystore"
-KEYSTORES_GENERATION_TOOL_NAME = "eth2-val-tools"
+KEYSTORES_OUTPUT_DIRPATH = "/development-keystore"
+KEYSTORES_GENERATION_TOOL_NAME = "/app/eth2-val-tools"
 
 SUCCESSFUL_EXEC_CMD_EXIT_CODE = 0
 
@@ -28,12 +24,11 @@ TEKU_KEYS_DIRNAME = "teku-keys"
 TEKU_SECRETS_DIRNAME = "teku-secrets"
 
 
-def generate_justfarming_keystore(plan, mnemonic, num_validators, capella_fork_epoch):
-    service_name = prelaunch_data_generator_launcher.launch_prelaunch_data_generator(
+def generate_development_keystore(plan, mnemonic, num_validators, capella_fork_epoch):
+    service_name = validator_keystore_generator.launch_prelaunch_data_generator(
         plan,
         {},
-        "jf-genesis-data",
-        capella_fork_epoch
+        "genesis-data"
     )
 
     start_index = 0
@@ -50,17 +45,18 @@ def generate_justfarming_keystore(plan, mnemonic, num_validators, capella_fork_e
     command_result = plan.exec(
         recipe=ExecRecipe(command=["sh", "-c", command_str]), service_name=service_name
     )
-    plan.assert(command_result["code"], "==", SUCCESSFUL_EXEC_CMD_EXIT_CODE)
+    plan.verify(command_result["code"], "==", SUCCESSFUL_EXEC_CMD_EXIT_CODE)
 
     # Store outputs into files artifacts
     artifact_name = plan.store_service_files(
-        service_name, KEYSTORES_OUTPUT_DIRPATH, name="justfarming-keystore"
+        service_name, KEYSTORES_OUTPUT_DIRPATH, name="development-keystore"
     )
 
     # This is necessary because the way Kurtosis currently implements artifact-storing is
     base_dirname_in_artifact = shared_utils.path_base(KEYSTORES_OUTPUT_DIRPATH)
     keystore_files = keystore_files_module.new_keystore_files(
         artifact_name,
+        shared_utils.path_join(base_dirname_in_artifact),
         shared_utils.path_join(base_dirname_in_artifact, RAW_KEYS_DIRNAME),
         shared_utils.path_join(base_dirname_in_artifact, RAW_SECRETS_DIRNAME),
         shared_utils.path_join(base_dirname_in_artifact, NIMBUS_KEYS_DIRNAME),
@@ -74,13 +70,13 @@ def generate_justfarming_keystore(plan, mnemonic, num_validators, capella_fork_e
 
 
 def deploy_lighthouse(plan, validator_params):
-    generate_justfarming_keystore(
+    generate_development_keystore(
         plan, validator_params["mnemonic"], validator_params["num_validators"], validator_params["capella_fork_epoch"]
     )
     plan.add_service(
-        name="justfarming-lighthouse-validator",
+        name="development-lighthouse-validator",
         config=ServiceConfig(
-            image="sigp/lighthouse:v4.4.1",
+            image="sigp/lighthouse:latest",
             ports={
                 "http": PortSpec(
                     number=5042,
@@ -93,16 +89,16 @@ def deploy_lighthouse(plan, validator_params):
                 ),
             },
             files={
-                "/genesis": "cl-genesis-data",
-                "/validator-keys": "justfarming-keystore",
+                "/genesis": "el_cl_genesis_data",
+                "/validator-keys": "development-keystore",
             },
             cmd=[
                 "lighthouse",
                 "validator_client",
                 "--debug-level=info",
-                "--testnet-dir=/genesis/output",
-                "--validators-dir=/validator-keys/justfarming-keystore/keys",
-                "--secrets-dir=/validator-keys/justfarming-keystore/secrets",
+                "--testnet-dir=/genesis/network-configs",
+                "--validators-dir=/validator-keys/development-keystore/keys",
+                "--secrets-dir=/validator-keys/development-keystore/secrets",
                 "--init-slashing-protection",
                 "--http",
                 "--unencrypted-http-transport",
@@ -126,7 +122,7 @@ def run(plan, args):
     validator_params = args["validator"]
     plan.print(network_params)
     plan.print(validator_params)
-    eth_network_participants, cl_genesis_timestamp, genesis_validators_root = eth_network_module.run(
+    ethereum_package.run(
         plan, network_params
     )
     plan.print("Launching an additional client pair")
