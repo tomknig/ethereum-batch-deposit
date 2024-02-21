@@ -1,9 +1,10 @@
 import * as dotenv from "dotenv";
 
-import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import { HardhatUserConfig } from "hardhat/config";
 import "solidity-coverage";
 
+import "./tasks/abi";
 import "./tasks/BatchDeposit";
 import "./tasks/enclave";
 import "./tasks/native-staking";
