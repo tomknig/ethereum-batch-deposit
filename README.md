@@ -6,15 +6,15 @@ The contracts are organized in the [`contracts`](/contracts) directory. [`interf
 The following table lists the networks and respective addresses that the BatchDeposit contract has been deployed to:
 
 | Network | Chain Id | Address |
-| ---     | ---      |         |
-| Mainnet | 1        | [0x]() |
-| Holesky | 17000    | [0xbb517684fc7214c15ed8a53a6f8dfbe4e15e5a9b72439efc838ee31edd503461](https://holesky.etherscan.io/tx/0xbb517684fc7214c15ed8a53a6f8dfbe4e15e5a9b72439efc838ee31edd503461) |
+| --- | --- | --- |
+| Mainnet | 1 | [0x]() |
+| Holesky | 17000 | [0xbb517684fc7214c15ed8a53a6f8dfbe4e15e5a9b72439efc838ee31edd503461](https://holesky.etherscan.io/tx/0xbb517684fc7214c15ed8a53a6f8dfbe4e15e5a9b72439efc838ee31edd503461) |
 
 ## Contracts
 
 ### BatchDeposit
 
-The BatchDeposit contract enables deployment of multiple Ethereum validators at once. The `BatchDeposit.sol` contract interacts with the native Ethereum staking deposit contract. For more information, see `contracts/lib/BatchDeposit.sol`.
+The BatchDeposit contract enables the deployment of multiple Ethereum validators at once. The `BatchDeposit.sol` contract interacts with the native Ethereum staking deposit contract. For more information, see `contracts/lib/BatchDeposit.sol`.
 
 Credits also go to [Justfarming](https://www.justfarming.xyz), [stakefish](https://www.stake.fish), and [abyss](https://www.abyss.finance) who have built their batch depositors in the open:
 
@@ -43,13 +43,13 @@ With `node`, you can proceed with installing the project-specific dependencies:
 npm install
 ```
 
-For static analysis, [Slither](https://github.com/crytic/slither) is used as a tools for performing automated security analysis on the smart contracts.
+For static analysis, [Slither](https://github.com/crytic/slither) is used to perform automated security analysis on the smart contracts.
 
 ``` shell
 pip3 install slither-analyzer
 ```
 
-`solc-select` is being used for managing the solidity version in use.
+We use `solc-select` for managing the active solidity version.
 
 ``` shell
 pip3 install solc-select
@@ -99,7 +99,6 @@ npm run analyze
 
 ### Testing
 
-
 To run the tests, you can run:
 
 ``` shell
@@ -107,7 +106,6 @@ npm run test
 ```
 
 #### Generate test-coverage
-
 
 To generate test coverage information, you can run:
 
@@ -162,6 +160,7 @@ Please note that you will need to wait 20 seconds until genesis.
 
 With default settings being used, the network will run at `http://127.0.0.1:64248`.
 Prefunded accounts use the following private keys ([source](https://github.com/kurtosis-tech/ethereum-package/blob/main/src/prelaunch_data_generator/genesis_constants/genesis_constants.star)):
+
 ``` md
 bcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31 -> 0x8943545177806ED17B9F23F0a21ee5948eCaa776
 39725efee3fb28614de3bacaffe4cc4bd8c436257e2c8bb887c4b5c4be45e76d -> 0xE25583099BA105D9ec0A67f5Ae86D90e50036425
@@ -179,6 +178,7 @@ bb1d0f125b4fb2bb173c318cdead45468474ca71474e2247776b2b4c0fa2d3f5 -> 0xc3913d4D8b
 ###### Deploying
 
 Find the rpc port of your locally running execution client by running
+
 ``` shell
 npx hardhat update-rpc-port
 # Remember to source the env
@@ -191,14 +191,13 @@ You can now deploy and interact with the contract.
 
 ###### Interacting
 
-There are 32 validators running, awaiting activation, with their keys derived the following mnemonic:
+32 validators are pre-configured and await activation. Their keys are derived from the following mnemonic:
 
 ``` text
 flee title shaft evoke stable vote injury ten strong farm obtain pause record rural device cotton hollow echo good acquire scrub buzz vacant liar
 ```
 
-To deposit to one or multiple of these validators, you'll need to first create deposit data. The following examples use `ethdo` as mentioned in the testing section.
-
+You'll need create deposit data first to deposit to one or multiple of these validators. The following examples use `ethdo` as mentioned in the testing section.
 
 ``` shell
 export WITHDRAWAL_ADDRESS=0x4E9A3d9D1cd2A2b2371b8b3F489aE72259886f1A
@@ -262,11 +261,12 @@ ls /tmp/local-validator-*.json | xargs -I {} jq -r '.[0].pubkey' {}
 ###### Observing
 
 You can stream the logs of these validator nodes with:
+
 ``` shell
 docker logs -f $(docker ps | grep development-lighthouse-validator | awk '{print $1}' | tr -d '\n')
 ```
 
-this is especially helpful for observing validators become active upon using `BatchDepoit.sol`.
+This is especially helpful for observing validators become active upon using `BatchDepoit.sol`.
 
 You can use `ethdo` to inspect validators:
 
@@ -294,7 +294,7 @@ ethdo wallet delete --wallet="${ETHDO_CONFIG_WALLET}"
 
 ## Deployment
 
-To deploy the contracts to a network, follow the network specific instructions below.
+Follow the network-specific instructions below to deploy the contracts to a network.
 
 ### Localnet
 
@@ -318,9 +318,9 @@ Deploying to the Ethereum mainnet requires [`Frame`](https://frame.sh) as the ex
 
 The Beacon Chain Deposit Contract address is `0x00000000219ab540356cBB839Cbe05303d7705Fa` and can be verified in different sources:
 
-- https://ethereum.org/staking/deposit-contract
-- https://etherscan.io/address/0x00000000219ab540356cbb839cbe05303d7705fa
-- https://github.com/ethereum/consensus-specs/blob/dev/configs/mainnet.yaml#L110
+- <https://ethereum.org/staking/deposit-contract>
+- <https://etherscan.io/address/0x00000000219ab540356cbb839cbe05303d7705fa>
+- <https://github.com/ethereum/consensus-specs/blob/dev/configs/mainnet.yaml#L110>
 
 ``` shell
 npx hardhat batch-deposit:deploy-via-frame --network mainnet --ethereum-deposit-contract-address 0x00000000219ab540356cBB839Cbe05303d7705Fa
