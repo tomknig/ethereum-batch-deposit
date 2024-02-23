@@ -8,7 +8,7 @@ The following table lists the networks and respective addresses that the BatchDe
 | Network | Chain Id | Address |
 | --- | --- | --- |
 | Mainnet | 1 | [0x]() |
-| Holesky | 17000 | [0xbb517684fc7214c15ed8a53a6f8dfbe4e15e5a9b72439efc838ee31edd503461](https://holesky.etherscan.io/tx/0xbb517684fc7214c15ed8a53a6f8dfbe4e15e5a9b72439efc838ee31edd503461) |
+| Holesky | 17000 | [0xf079e540F598a85C22dA6eb570236B2169bE4962](https://holesky.etherscan.io/address/0xf079e540f598a85c22da6eb570236b2169be4962) |
 
 ## Contracts
 
