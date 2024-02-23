@@ -9,7 +9,7 @@
       {
         "el_client_type": "geth",
         "cl_client_type": "lighthouse",
-        "count": 2
+        "count": 1
       }
     ],
     "network_params": {

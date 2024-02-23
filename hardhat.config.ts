@@ -47,6 +47,14 @@ const config: HardhatUserConfig = {
         "94eb3102993b41ec55c241060f47daa0f6372e2e3ad7e91612ae36c364042e44", // 0x3e95dFbBaF6B348396E6674C7871546dCC568e56
       ],
     },
+    holesky: {
+      url: "https://ethereum-holesky.publicnode.com",
+      chainId: 17000,
+    },
+    mainnet: {
+      url: "https://ethereum.publicnode.com",
+      chainId: 1,
+    },
   },
   paths: {
     sources: sources,
