@@ -1,6 +1,7 @@
 import * as dotenv from "dotenv";
 
 import "@nomicfoundation/hardhat-toolbox";
+import "@nomicfoundation/hardhat-verify";
 import { HardhatUserConfig } from "hardhat/config";
 import "solidity-coverage";
 
@@ -12,6 +13,12 @@ import "./tasks/native-staking";
 dotenv.config();
 const isTesting = process.env.HARDHAT_TESTING;
 let sources = isTesting ? "./contracts" : "./contracts/lib";
+
+const etherscanApiKey = process.env.ETHERSCAN_API_KEY;
+
+if (etherscanApiKey === undefined) {
+  console.warn("ETHERSCAN_API_KEY environment variable not set.");
+}
 
 if (process.env.EL_RPC_PORT === undefined) {
   console.warn(
@@ -28,6 +35,10 @@ const config: HardhatUserConfig = {
         runs: 200,
       },
     },
+  },
+  etherscan: etherscanApiKey ? { apiKey: etherscanApiKey } : undefined,
+  sourcify: {
+    enabled: true,
   },
   networks: {
     localhost: {
