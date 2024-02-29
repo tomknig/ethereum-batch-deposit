@@ -354,11 +354,4 @@ describe("BatchDeposit", async () => {
         );
     });
   });
-
-  it("can transfer ownership", async function () {
-    const [owner, owner2] = await ethers.getSigners();
-    expect(await this.batchDepositContract.owner()).to.equal(owner.address);
-    await this.batchDepositContract.transferOwnership(owner2.address);
-    expect(await this.batchDepositContract.owner()).to.equal(owner2.address);
-  });
 });

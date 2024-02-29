@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 import "../interfaces/IDepositContract.sol";
@@ -12,7 +11,7 @@ import "../interfaces/IDepositContract.sol";
  * @dev This contract allows to batch deposit validators to the Ethereum 2.0
  * deposit contract.
  */
-contract BatchDeposit is Ownable, ReentrancyGuard {
+contract BatchDeposit is ReentrancyGuard {
     address private immutable depositContract;
 
     uint256 private constant PUBKEY_LENGTH = 48;
