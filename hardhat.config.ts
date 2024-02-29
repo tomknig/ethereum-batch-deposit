@@ -28,7 +28,7 @@ if (process.env.EL_RPC_PORT === undefined) {
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.21",
+    version: "0.8.24",
     settings: {
       optimizer: {
         enabled: true,

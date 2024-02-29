@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.21;
+pragma solidity 0.8.24;
 
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import "../interfaces/IDepositContract.sol";
 
@@ -18,8 +18,6 @@ contract BatchDeposit is ReentrancyGuard {
     uint256 private constant SIGNATURE_LENGTH = 96;
     uint256 private constant MAX_VALIDATORS_PER_BATCH = 100;
     uint256 private constant DEPOSIT_AMOUNT = 32 ether;
-
-    event Deposited(address from, uint256 nodesAmount);
 
     error NotPayable();
     error InvalidDepositContractAddress();
@@ -112,7 +110,5 @@ contract BatchDeposit is ReentrancyGuard {
                 ++i;
             }
         }
-
-        emit Deposited(msg.sender, numberOfValidators);
     }
 }

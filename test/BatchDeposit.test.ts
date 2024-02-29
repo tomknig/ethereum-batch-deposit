@@ -159,9 +159,6 @@ describe("BatchDeposit", async () => {
         this.ethereumStakingDepositContract.target,
         expectedPaymentAmount,
       );
-      await expect(res)
-        .to.emit(this.batchDepositContract, "Deposited")
-        .withArgs(payee1.address, numberOfNodes);
     });
 
     it("reverts if transaction value is too low", async function () {
