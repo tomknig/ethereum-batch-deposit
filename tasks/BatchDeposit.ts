@@ -74,10 +74,17 @@ task(
     });
 
     // Set the `tx.from` to the current Frame account
-    tx.from = accounts[0];
+    const [account] = accounts;
+    tx.from = account;
 
     // Enforce the chain ID
-    tx.chainId = hre.network.config.chainId as any;
+    const { chainId } = hre.network.config;
+    if (!chainId) {
+      console.error("Chain ID not found in the network configuration.");
+      return;
+    }
+
+    tx.chainId = BigInt(chainId);
 
     // Sign and send the transaction using Frame
     const txId = await frame.request<string>({
