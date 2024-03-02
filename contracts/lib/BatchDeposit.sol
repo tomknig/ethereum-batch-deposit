@@ -56,9 +56,6 @@ contract BatchDeposit is ReentrancyGuard {
      * is an Ethereum address followed by 11 zero bytes to pad the credential
      * to 32 bytes.
      *
-     * Validator public keys must have been registered prior to depositing to
-     * them.
-     *
      * The following parameters must be provided in the same order:
      * - The BLS12-381 public keys of the validators.
      * - The BLS12-381 signatures of the deposit messages.
