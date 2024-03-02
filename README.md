@@ -5,10 +5,10 @@ The contracts are organized in the [`contracts`](/contracts) directory. [`interf
 
 The following table lists the networks and respective addresses that the BatchDeposit contract has been deployed to:
 
-| Network | Chain Id | Address |
-| --- | --- | --- |
-| Mainnet | 1 | [0x]() |
-| Holesky | 17000 | [0xf079e540F598a85C22dA6eb570236B2169bE4962](https://holesky.etherscan.io/address/0xf079e540f598a85c22da6eb570236b2169be4962) |
+| Network | Chain Id | Address                                                                                                                       |
+| ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Mainnet | 1        | [0x8fC32441C13706bB981A506FdE65DeDD5dEF3981](https://etherscan.io/address/0x8fc32441c13706bb981a506fde65dedd5def3981)         |
+| Holesky | 17000    | [0xf079e540F598a85C22dA6eb570236B2169bE4962](https://holesky.etherscan.io/address/0xf079e540f598a85c22da6eb570236b2169be4962) |
 
 ## Contracts
 
@@ -39,19 +39,19 @@ The Justfaring contracts project uses the [Truffle Suite](https://trufflesuite.c
 
 With `node`, you can proceed with installing the project-specific dependencies:
 
-``` shell
+```shell
 npm install
 ```
 
 For static analysis, [Slither](https://github.com/crytic/slither) is used to perform automated security analysis on the smart contracts.
 
-``` shell
+```shell
 pip3 install slither-analyzer
 ```
 
 We use `solc-select` for managing the active solidity version.
 
-``` shell
+```shell
 pip3 install solc-select
 solc-select install 0.8.24
 solc-select use 0.8.24
@@ -63,7 +63,7 @@ solc-select use 0.8.24
 
 To compile the contracts for use in web applications using [`wagmi`](https://wagmi.sh), you can run:
 
-``` shell
+```shell
 npm run compile
 npx hardhat generate-typescript-abi
 ```
@@ -72,19 +72,19 @@ npx hardhat generate-typescript-abi
 
 You can lint `.js` and `.ts` files with
 
-``` shell
+```shell
 npm run lint:ts
 ```
 
 as well as the `.sol` files with
 
-``` shell
+```shell
 npm run lint:sol
 ```
 
 Most issues can be fixed with
 
-``` shell
+```shell
 npm run lint:ts -- --fix
 npm run fmt
 ```
@@ -93,7 +93,7 @@ npm run fmt
 
 To run the analyzer:
 
-``` shell
+```shell
 npm run analyze
 ```
 
@@ -101,7 +101,7 @@ npm run analyze
 
 To run the tests, you can run:
 
-``` shell
+```shell
 npm run test
 ```
 
@@ -109,7 +109,7 @@ npm run test
 
 To generate test coverage information, you can run:
 
-``` shell
+```shell
 npm run test:coverage
 ```
 
@@ -117,11 +117,11 @@ npm run test:coverage
 
 Manual tests can be conducted using [`ethdo`](https://github.com/wealdtech/ethdo), which can be installed using `go`:
 
-``` shell
+```shell
 go install github.com/wealdtech/ethdo@latest
 ```
 
-``` shell
+```shell
 export ETHDO_WALLET_NAME="Development"
 export ETHDO_PASSPHRASE="Development"
 export ETHDO_MNEMONIC="..."
@@ -152,7 +152,7 @@ In addition to the previously mentioned requirements, you will need the followin
 
 ###### Launch a local ethereum network
 
-``` shell
+```shell
 kurtosis run --enclave batch-deposit-contract config/localnet/main.star "$(cat ./config/localnet/params.json)"
 ```
 
@@ -161,7 +161,7 @@ Please note that you will need to wait 20 seconds until genesis.
 With default settings being used, the network will run at `http://127.0.0.1:64248`.
 Prefunded accounts use the following private keys ([source](https://github.com/kurtosis-tech/ethereum-package/blob/main/src/prelaunch_data_generator/genesis_constants/genesis_constants.star)):
 
-``` md
+```md
 bcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31 -> 0x8943545177806ED17B9F23F0a21ee5948eCaa776
 39725efee3fb28614de3bacaffe4cc4bd8c436257e2c8bb887c4b5c4be45e76d -> 0xE25583099BA105D9ec0A67f5Ae86D90e50036425
 53321db7c1e331d93a11a41d16f004d7ff63972ec8ec7c25db329728ceeb1710 -> 0x614561D2d143621E126e87831AEF287678B442b8
@@ -179,7 +179,7 @@ bb1d0f125b4fb2bb173c318cdead45468474ca71474e2247776b2b4c0fa2d3f5 -> 0xc3913d4D8b
 
 Find the rpc port of your locally running execution client by running
 
-``` shell
+```shell
 npx hardhat update-rpc-port
 # Remember to source the env
 source .env
@@ -193,13 +193,13 @@ You can now deploy and interact with the contract.
 
 32 validators are pre-configured and await activation. Their keys are derived from the following mnemonic:
 
-``` text
+```text
 flee title shaft evoke stable vote injury ten strong farm obtain pause record rural device cotton hollow echo good acquire scrub buzz vacant liar
 ```
 
 You'll need create deposit data first to deposit to one or multiple of these validators. The following examples use `ethdo` as mentioned in the testing section.
 
-``` shell
+```shell
 export WITHDRAWAL_ADDRESS=0x4E9A3d9D1cd2A2b2371b8b3F489aE72259886f1A
 export ETHDO_CONFIG_WALLET=Development
 export ETHDO_CONFIG_PASSPHRASE=test
@@ -234,7 +234,7 @@ ethdo wallet delete --wallet="${ETHDO_CONFIG_WALLET}"
 
 You can now extract the respective depositdata from the created depositdata files in `/tmp`. For example, get the pubkeys for registering them with the BatchDeposit contract:
 
-``` shell
+```shell
 # deploy the BatchDeposit contract
 npx hardhat batch-deposit:deploy --network localnet --ethereum-deposit-contract-address 0x4242424242424242424242424242424242424242
 # export the address afterwards: export BATCH_DEPOSIT_CONTRACT_ADDRESS=0x...
@@ -254,7 +254,7 @@ npx hardhat --network localnet debug:transaction --tx-hash 0xbc0ce66317705141485
 
 You can use the following command to get the public keys of the validators:
 
-``` bash
+```bash
 ls /tmp/local-validator-*.json | xargs -I {} jq -r '.[0].pubkey' {}
 ```
 
@@ -262,7 +262,7 @@ ls /tmp/local-validator-*.json | xargs -I {} jq -r '.[0].pubkey' {}
 
 You can stream the logs of these validator nodes with:
 
-``` shell
+```shell
 docker logs -f $(docker ps | grep development-lighthouse-validator | awk '{print $1}' | tr -d '\n')
 ```
 
@@ -270,7 +270,7 @@ This is especially helpful for observing validators become active upon using `Ba
 
 You can use `ethdo` to inspect validators:
 
-``` shell
+```shell
 # Get general chain info
 ethdo --connection=http://localhost:$CL_RPC_PORT chain info
 
@@ -284,7 +284,7 @@ ethdo --connection=http://localhost:$CL_RPC_PORT validator info --validator 0xb8
 
 Remember to clean up when you are done.
 
-``` shell
+```shell
 # Clean up kurtosis
 kurtosis clean -a
 
@@ -296,7 +296,7 @@ ethdo wallet delete --wallet="${ETHDO_CONFIG_WALLET}"
 
 Compile the contracts with:
 
-``` shell
+```shell
 npm run compile
 ```
 
@@ -306,7 +306,7 @@ And continue by following the network-specific instructions below to deploy the 
 
 Deploying to the locally running network is as simple as running:
 
-``` shell
+```shell
 npx hardhat batch-deposit:deploy --network localnet --ethereum-deposit-contract-address 0x4242424242424242424242424242424242424242
 ```
 
@@ -314,7 +314,7 @@ npx hardhat batch-deposit:deploy --network localnet --ethereum-deposit-contract-
 
 Deploying to Holesky requires [`Frame`](https://frame.sh) as the external signer. This setup enables the use of hardware wallets during the deployment.
 
-``` shell
+```shell
 npx hardhat batch-deposit:deploy-via-frame --network holesky --ethereum-deposit-contract-address 0x4242424242424242424242424242424242424242
 
 # export the address afterwards: export BATCH_DEPOSIT_CONTRACT_ADDRESS=0x...
@@ -333,11 +333,11 @@ The Beacon Chain Deposit Contract address is `0x00000000219ab540356cBB839Cbe0530
 - <https://etherscan.io/address/0x00000000219ab540356cbb839cbe05303d7705fa>
 - <https://github.com/ethereum/consensus-specs/blob/dev/configs/mainnet.yaml#L110>
 
-``` shell
+```shell
 npx hardhat batch-deposit:deploy-via-frame --network mainnet --ethereum-deposit-contract-address 0x00000000219ab540356cBB839Cbe05303d7705Fa
 
 # export the address afterwards: export BATCH_DEPOSIT_CONTRACT_ADDRESS=0x...
 
 # Verify the contract
-npm run verify -- --network holesky $BATCH_DEPOSIT_CONTRACT_ADDRESS "0x00000000219ab540356cBB839Cbe05303d7705Fa"
+npm run verify -- --network mainnet $BATCH_DEPOSIT_CONTRACT_ADDRESS "0x00000000219ab540356cBB839Cbe05303d7705Fa"
 ```
