@@ -84,7 +84,7 @@ task(
       return;
     }
 
-    tx.chainId = BigInt(chainId);
+    tx.chainId = chainId as unknown as bigint;
 
     // Sign and send the transaction using Frame
     const txId = await frame.request<string>({
